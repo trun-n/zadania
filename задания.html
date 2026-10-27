@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Квест вожатого</title>
+<style>
+  :root{
+    --red:#A22A2A;
+    --orange:#EB7E30;
+    --rose:#CB6A6A;
+    --black:#111111;
+    --white:#ffffff;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+    min-height:100vh;
+    background: var(--white);
+    color: var(--black);
+    display:flex; align-items:center; justify-content:center;
+    padding:20px;
+  }
+  .card{
+    width:100%; max-width:640px;
+    background: var(--white);
+    border:2px solid var(--red);
+    border-radius:20px;
+    padding:28px 24px 22px;
+    box-shadow: 0 10px 30px rgba(162,42,42,.15);
+    text-align:center;
+  }
+  h1{
+    font-size:1.5rem; letter-spacing:.5px; margin-bottom:6px;
+    color: var(--red);
+  }
+  .subtitle{
+    color: var(--rose); font-size:.9rem; margin-bottom:22px;
+  }
+  .task-box{
+    background: var(--white);
+    color: var(--black);
+    border:2px solid var(--orange);
+    border-left:8px solid var(--orange);
+    border-radius:14px;
+    padding:26px 20px;
+    min-height:130px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.2rem; line-height:1.45; font-weight:600;
+  }
+  .task-box.pop{ animation: pop .35s ease; }
+  @keyframes pop{
+    0%{transform:scale(.94); opacity:.5;}
+    100%{transform:scale(1); opacity:1;}
+  }
+  .task-box .placeholder{
+    color:#9a9a9a; font-weight:500; font-size:1rem;
+  }
+  .btn-main{
+    width:100%;
+    margin-top:18px;
+    padding:16px;
+    font-size:1.15rem; font-weight:700;
+    color: var(--white);
+    background: var(--red);
+    border:none; border-radius:12px;
+    cursor:pointer;
+    letter-spacing:.5px;
+    transition: filter .12s ease;
+  }
+  .btn-main:hover:not(:disabled){ filter:brightness(1.1); }
+  .btn-main:disabled{ opacity:.45; cursor:not-allowed; }
+
+  .admin{
+    margin-top:18px;
+    padding-top:16px;
+    border-top:1px dashed var(--rose);
+    display:flex; gap:8px; flex-wrap:wrap; justify-content:center; align-items:center;
+  }
+  .admin input{
+    flex:1 1 130px; min-width:110px;
+    padding:9px 12px; border-radius:10px;
+    border:1px solid var(--rose);
+    background: var(--white); color:var(--black);
+    font-size:.9rem; outline:none;
+  }
+  .admin input:focus{ border-color: var(--orange); }
+  .admin input::placeholder{ color:#b98a8a; }
+  .admin button{
+    padding:9px 14px; border-radius:10px; cursor:pointer;
+    font-size:.85rem; font-weight:600; border:none;
+    background: var(--orange); color: var(--white);
+    transition: filter .12s ease;
+  }
+  .admin button:hover:not(:disabled){ filter:brightness(1.08); }
+  .admin button:disabled{ opacity:.45; cursor:not-allowed; }
+  .admin .reset{
+    background: transparent; color: var(--red);
+    border:1px solid var(--red);
+  }
+  .msg{
+    margin-top:12px; min-height:20px;
+    font-size:.9rem; font-weight:600;
+  }
+  .msg.ok{ color: #2e7d32; }
+  .msg.err{ color: var(--red); }
+
+  .footer{
+    margin-top:22px;
+    padding-top:14px;
+    border-top:1px solid var(--rose);
+    font-size:.85rem;
+    letter-spacing:.4px;
+    color: var(--red);
+    font-weight:600;
+  }
+
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(0,0,0,.45);
+    display:none; align-items:center; justify-content:center; padding:20px;
+    z-index:50;
+  }
+  .modal-overlay.show{ display:flex; }
+  .modal{
+    background:var(--white); color:var(--black);
+    border-radius:16px; padding:28px 24px;
+    max-width:380px; width:100%; text-align:center;
+    border-top:8px solid var(--red);
+    animation: pop .3s ease;
+  }
+  .modal h2{ font-size:1.25rem; margin-bottom:10px; color:var(--red); }
+  .modal p{ font-size:.95rem; line-height:1.5; margin-bottom:18px; }
+  .modal button{
+    padding:12px 26px; border:none; border-radius:10px;
+    background: var(--orange);
+    color:var(--white); font-weight:700; cursor:pointer; font-size:1rem;
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h1>Квест вожатого</h1>
+  <div class="subtitle">Получи задание, выполни его и сдай наставнику</div>
+
+  <div class="task-box" id="taskBox">
+    <span class="placeholder">Задание появится здесь</span>
+  </div>
+
+  <button class="btn-main" id="drawBtn">Получить задание</button>
+
+  <div class="admin">
+    <input type="password" id="passInput" placeholder="Пароль наставника" autocomplete="off">
+    <button id="changeBtn">Принять</button>
+    <button class="reset" id="resetBtn">Сбросить</button>
+  </div>
+
+  <div class="msg" id="msg"></div>
+
+  <div class="footer">АБВ — Академия будущих вожатых</div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h2>Задания закончились!</h2>
+    <p>Все задания уже выданы. Введи пароль наставника, чтобы сбросить пул.</p>
+    <button id="modalClose">Понятно</button>
+  </div>
+</div>
+
+<script>
+  const TASKS = [
+    "Покажите без слов как проходит отбой в лагере у самого шумного отряда",
+    "Отряд опоздал на мероприятие, придумайте самое нелепое оправдание для старшего вожатого, но говорите так, чтобы он поверил",
+    "Помогите старшему вожатому найти вещь, которую он потерял",
+    "Придумайте самые бессмысленные упражнения для утренней зарядки",
+    "Придумайте и нарисуйте эмблему вашего отряда (вашей команды)",
+    "Придумайте необычный ритуал посвящения в ваш отряд и посвятите старшего вожатого",
+    "Придумайте название и девиз вашей команды",
+    "Нарисуйте портрет идеального вожатого",
+    "Объясните ребенку почему нельзя уходить за территорию лагеря самому",
+    "Расшифруйте аббревиатуру «ЛАГЕРЬ» — каждое слово на эту букву, связанное с лагерем",
+    "Выстройтесь по дате рождения (только по дню), но вслух можно только мяукать",
+    "Придумайте 5 самых нелепых правил в лагере",
+    "Придумайте короткий общий танцевальный флешмоб",
+    "Старший вожатый сорвал голос. Помоги ему сделать то, что он попросит",
+    "Изобразите картину: перед мероприятием потерялся важны реквизит"
+  ];
+
+  const PASSWORD = "3322";
+
+  let pool = [];
+  let currentIndex = null;
+  let awaitingApproval = false;
+
+  const taskBox   = document.getElementById('taskBox');
+  const drawBtn   = document.getElementById('drawBtn');
+  const passInput = document.getElementById('passInput');
+  const changeBtn = document.getElementById('changeBtn');
+  const resetBtn  = document.getElementById('resetBtn');
+  const msg       = document.getElementById('msg');
+  const modalOverlay = document.getElementById('modalOverlay');
+  const modalClose   = document.getElementById('modalClose');
+
+  function shuffle(arr){
+    for(let i=arr.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [arr[i],arr[j]] = [arr[j],arr[i]];
+    }
+    return arr;
+  }
+
+  function initPool(){
+    pool = shuffle(TASKS.map((_,i)=>i));
+    currentIndex = null;
+    awaitingApproval = false;
+    taskBox.innerHTML = '<span class="placeholder">Задание появится здесь</span>';
+    updateUI();
+  }
+
+  function updateUI(){
+    drawBtn.disabled = awaitingApproval || pool.length === 0;
+    changeBtn.disabled = !awaitingApproval;
+  }
+
+  function showTask(index){
+    currentIndex = index;
+    awaitingApproval = true;
+    taskBox.innerHTML = TASKS[index];
+    taskBox.classList.remove('pop');
+    void taskBox.offsetWidth;
+    taskBox.classList.add('pop');
+    updateUI();
+  }
+
+  function clearTask(){
+    currentIndex = null;
+    awaitingApproval = false;
+    taskBox.innerHTML = '<span class="placeholder">Задание появится здесь</span>';
+    updateUI();
+  }
+
+  function showMsg(text, type){
+    msg.textContent = text;
+    msg.className = 'msg ' + (type || '');
+    if(text){
+      clearTimeout(showMsg._t);
+      showMsg._t = setTimeout(()=>{ msg.textContent=''; msg.className='msg'; }, 2600);
+    }
+  }
+
+  function openModal(){ modalOverlay.classList.add('show'); }
+  function closeModal(){ modalOverlay.classList.remove('show'); }
+
+  function drawTask(){
+    if(awaitingApproval){
+      showMsg('Сначала прими текущее задание', 'err');
+      return;
+    }
+    if(pool.length === 0){
+      openModal();
+      return;
+    }
+    const idx = pool.pop();
+    showTask(idx);
+  }
+
+  function approveTask(){
+    if(passInput.value.trim() !== PASSWORD){
+      showMsg('Неверный пароль', 'err');
+      passInput.value = '';
+      return;
+    }
+    passInput.value = '';
+
+    if(!awaitingApproval){
+      showMsg('Нет задания, которое нужно принять', 'err');
+      return;
+    }
+
+    clearTask();
+    showMsg('Задание принято', 'ok');
+  }
+
+  function resetAll(){
+    if(passInput.value.trim() !== PASSWORD){
+      showMsg('Неверный пароль', 'err');
+      passInput.value = '';
+      return;
+    }
+    passInput.value = '';
+    initPool();
+    showMsg('Пул заданий сброшен', 'ok');
+    closeModal();
+  }
+
+  drawBtn.addEventListener('click', drawTask);
+  changeBtn.addEventListener('click', approveTask);
+  resetBtn.addEventListener('click', resetAll);
+  modalClose.addEventListener('click', closeModal);
+  modalOverlay.addEventListener('click', (e)=>{ if(e.target === modalOverlay) closeModal(); });
+  passInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') approveTask(); });
+
+  initPool();
+</script>
+
+</body>
+</html>
